@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:quickalert/models/quickalert_animtype.dart';
 import 'package:quickalert/models/quickalert_type.dart';
@@ -9,6 +11,12 @@ class QuickAlertOptions {
 
   /// Text of the dialog
   String? text;
+
+  /// TitleAlignment of the dialog
+  TextAlign? titleAlignment;
+
+  /// TextAlignment of the dialog
+  TextAlign? textAlignment;
 
   /// Custom Widget of the dialog
   Widget? widget;
@@ -46,6 +54,9 @@ class QuickAlertOptions {
   /// Backgroung Color for dialog
   Color? backgroundColor;
 
+  /// Header Backgroung Color for dialog
+  Color? headerBackgroundColor;
+
   /// Color of title
   Color? titleColor;
 
@@ -54,6 +65,9 @@ class QuickAlertOptions {
 
   /// Determines if cancel button is shown or not
   bool? showCancelBtn;
+
+  /// Determines if confirm button is shown or not
+  bool? showConfirmBtn;
 
   /// Dialog Border Radius
   double? borderRadius;
@@ -65,6 +79,9 @@ class QuickAlertOptions {
   /// Width of the dialog
   double? width;
 
+  /// timer for dismissing dialog (Ok button)
+  Timer? timer;
+
   /// Alert Options
   QuickAlertOptions({
     /// Title of the dialog
@@ -72,6 +89,12 @@ class QuickAlertOptions {
 
     /// Text of the dialog
     this.text,
+
+    /// TitleAlignment of the dialog
+    this.titleAlignment,
+
+    /// TextAlignment of the dialog
+    this.textAlignment,
 
     /// Custom Widget of the dialog
     this.widget,
@@ -109,6 +132,9 @@ class QuickAlertOptions {
     /// Backgroung Color for dialog
     this.backgroundColor,
 
+    /// Header Backgroung Color for dialog
+    this.headerBackgroundColor,
+
     /// Color of title
     this.titleColor,
 
@@ -117,6 +143,9 @@ class QuickAlertOptions {
 
     /// Determines if cancel button is shown or not
     this.showCancelBtn,
+
+    /// Determines if confirm button is shown or not
+    this.showConfirmBtn,
 
     /// Dialog Border Radius
     this.borderRadius,
@@ -127,5 +156,8 @@ class QuickAlertOptions {
 
     /// Width of the dialog
     this.width,
+
+    /// timer for dismissing dialog (Ok button)
+    this.timer,
   });
 }

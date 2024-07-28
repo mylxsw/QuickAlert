@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:quickalert/models/quickalert_animtype.dart';
 import 'package:quickalert/models/quickalert_options.dart';
 import 'package:quickalert/models/quickalert_type.dart';
@@ -18,6 +19,12 @@ class QuickAlert {
 
     /// Text of the dialog
     String? text,
+
+    /// TitleAlignment of the dialog
+    TextAlign? titleAlignment,
+
+    /// TextAlignment of the dialog
+    TextAlign? textAlignment,
 
     /// Custom Widget of the dialog
     Widget? widget,
@@ -55,6 +62,9 @@ class QuickAlert {
     /// Background Color for dialog
     Color backgroundColor = Colors.white,
 
+    /// Header Background Color for dialog
+    Color headerBackgroundColor = Colors.white,
+
     /// Color of title
     Color titleColor = Colors.black,
 
@@ -66,6 +76,9 @@ class QuickAlert {
 
     /// Determines if cancel button is shown or not
     bool showCancelBtn = false,
+
+    /// Determines if confirm button is shown or not
+    bool showConfirmBtn = true,
 
     /// Dialog Border Radius
     double borderRadius = 15.0,
@@ -79,16 +92,23 @@ class QuickAlert {
 
     /// Determines how long the dialog stays open for before closing, [default] is null. When it is null, it won't auto close
     Duration? autoCloseDuration,
+
+    /// Disable Back Button
+    bool disableBackBtn = false,
   }) {
+    Timer? timer;
     if (autoCloseDuration != null) {
-      Future.delayed(autoCloseDuration, () {
+      timer = Timer(autoCloseDuration, () {
         Navigator.of(context, rootNavigator: true).pop();
       });
     }
 
     final options = QuickAlertOptions(
+      timer: timer,
       title: title,
       text: text,
+      titleAlignment: titleAlignment,
+      textAlignment: textAlignment,
       widget: widget,
       type: type,
       animType: animType,
@@ -101,24 +121,57 @@ class QuickAlert {
       confirmBtnTextStyle: confirmBtnTextStyle,
       cancelBtnTextStyle: cancelBtnTextStyle,
       backgroundColor: backgroundColor,
+      headerBackgroundColor: headerBackgroundColor,
       titleColor: titleColor,
       textColor: textColor,
       showCancelBtn: showCancelBtn,
+      showConfirmBtn: showConfirmBtn,
       borderRadius: borderRadius,
       buttonBorderRadius: buttonBorderRadius,
       customAsset: customAsset,
       width: width,
     );
 
-    final child = AlertDialog(
-      contentPadding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(borderRadius),
-      ),
-      content: QuickAlertContainer(
-        options: options,
+    Widget child = WillPopScope(
+      onWillPop: () async {
+        options.timer?.cancel();
+        if (options.type == QuickAlertType.loading &&
+            !disableBackBtn &&
+            showCancelBtn) {
+          if (options.onCancelBtnTap != null) {
+            options.onCancelBtnTap!();
+            return false;
+          }
+        }
+        return !disableBackBtn;
+      },
+      child: AlertDialog(
+        contentPadding: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(borderRadius),
+        ),
+        content: QuickAlertContainer(
+          options: options,
+        ),
       ),
     );
+
+    if (options.type != QuickAlertType.loading) {
+      child = RawKeyboardListener(
+        focusNode: FocusNode(),
+        autofocus: true,
+        onKey: (event) {
+          if (event is RawKeyUpEvent &&
+              event.logicalKey == LogicalKeyboardKey.enter) {
+            options.timer?.cancel();
+            options.onConfirmBtnTap != null
+                ? options.onConfirmBtnTap!()
+                : Navigator.pop(context);
+          }
+        },
+        child: child,
+      );
+    }
 
     return showGeneralDialog(
       barrierColor: barrierColor ?? Colors.black.withOpacity(0.5),

@@ -3,11 +3,11 @@ import 'package:quickalert/models/quickalert_options.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 
 class QuickAlertButtons extends StatelessWidget {
-  final QuickAlertOptions? options;
+  final QuickAlertOptions options;
 
   const QuickAlertButtons({
     Key? key,
-    this.options,
+    required this.options,
   }) : super(key: key);
 
   @override
@@ -18,23 +18,31 @@ class QuickAlertButtons extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           cancelBtn(context),
-          okayBtn(context),
+          options.type != QuickAlertType.loading
+              ? okayBtn(context)
+              : const SizedBox.shrink(),
         ],
       ),
     );
   }
 
   Widget okayBtn(context) {
-    final showCancelBtn = options!.type == QuickAlertType.confirm
-        ? true
-        : options!.showCancelBtn!;
+    if (!options.showConfirmBtn!) {
+      return const SizedBox();
+    }
+    final showCancelBtn =
+        options.type == QuickAlertType.confirm ? true : options.showCancelBtn!;
 
     final okayBtn = buildButton(
-      context: context,
-      isOkayBtn: true,
-      text: options!.confirmBtnText!,
-      onTap: options!.onConfirmBtnTap ?? () => Navigator.pop(context),
-    );
+        context: context,
+        isOkayBtn: true,
+        text: options.confirmBtnText!,
+        onTap: () {
+          options.timer?.cancel();
+          options.onConfirmBtnTap != null
+              ? options.onConfirmBtnTap!()
+              : Navigator.pop(context);
+        });
 
     if (showCancelBtn) {
       return Expanded(child: okayBtn);
@@ -44,21 +52,24 @@ class QuickAlertButtons extends StatelessWidget {
   }
 
   Widget cancelBtn(context) {
-    final showCancelBtn = options!.type == QuickAlertType.confirm
-        ? true
-        : options!.showCancelBtn!;
+    final showCancelBtn =
+        options.type == QuickAlertType.confirm ? true : options.showCancelBtn!;
 
     final cancelBtn = buildButton(
-      context: context,
-      isOkayBtn: false,
-      text: options!.cancelBtnText!,
-      onTap: options!.onCancelBtnTap ?? () => Navigator.pop(context),
-    );
+        context: context,
+        isOkayBtn: false,
+        text: options.cancelBtnText!,
+        onTap: () {
+          options.timer?.cancel();
+          options.onCancelBtnTap != null
+              ? options.onCancelBtnTap!()
+              : Navigator.pop(context);
+        });
 
     if (showCancelBtn) {
       return Expanded(child: cancelBtn);
     } else {
-      return Container();
+      return const SizedBox();
     }
   }
 
@@ -78,7 +89,7 @@ class QuickAlertButtons extends StatelessWidget {
         borderRadius:
             BorderRadius.circular(options!.buttonBorderRadius ?? 15.0),
       ),
-      color: options!.confirmBtnColor ?? Theme.of(context!).primaryColor,
+      color: options.confirmBtnColor ?? Theme.of(context!).primaryColor,
       onPressed: onTap,
       child: Center(
         child: Padding(
@@ -106,9 +117,9 @@ class QuickAlertButtons extends StatelessWidget {
     );
 
     if (isOkayBtn) {
-      return options!.confirmBtnTextStyle ?? textStyle;
+      return options.confirmBtnTextStyle ?? textStyle;
     } else {
-      return options!.cancelBtnTextStyle ?? textStyle;
+      return options.cancelBtnTextStyle ?? textStyle;
     }
   }
 }
